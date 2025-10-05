@@ -1,0 +1,9 @@
+
+services:
+  cool:
+    build: .
+    container_name: cool-env
+    stdin_open: true
+    tty: true
+    volumes:
+      - /Users/julian/Dev/UN/compilers/workspace:/workspace
