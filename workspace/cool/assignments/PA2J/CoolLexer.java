@@ -510,6 +510,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
  *  Ultimately, you should return the EOF symbol, or your lexer won't
  *  work.  */
     switch(yy_lexical_state) {
+    case STRING: 
+      yy_lexical_state = YYINITIAL;
+      return new Symbol(TokenConstants.ERROR, "EOF in string constant");
     case YYINITIAL:
 	/* nothing special to do in the initial state */
 	break;

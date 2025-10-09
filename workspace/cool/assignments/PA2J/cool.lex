@@ -58,6 +58,9 @@ import java_cup.runtime.Symbol;
  *  work.  */
 
     switch(yy_lexical_state) {
+    case STRING: 
+      yy_lexical_state = YYINITIAL;
+      return new Symbol(TokenConstants.ERROR, "EOF in string constant");
     case YYINITIAL:
 	/* nothing special to do in the initial state */
 	break;
