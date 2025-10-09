@@ -20,6 +20,7 @@ import java_cup.runtime.Symbol;
     StringBuffer string_buf = new StringBuffer();
     boolean string_too_long = false;
     boolean null_in_string = false;
+    boolean escaped_null_in_string = false;
 
     // For nested block comments
     int comment_depth = 0;
@@ -165,6 +166,7 @@ import java_cup.runtime.Symbol;
   string_buf.setLength(0);
   string_too_long = false;
   null_in_string = false;
+  escaped_null_in_string = false;
   yybegin(STRING);
 }
 
@@ -177,6 +179,11 @@ import java_cup.runtime.Symbol;
   if (null_in_string){
     yybegin(YYINITIAL);
     return new Symbol(TokenConstants.ERROR, "String contains null character");
+  }
+
+  if (escaped_null_in_string){
+    yybegin(YYINITIAL);
+    return new Symbol(TokenConstants.ERROR, "String contains escaped null character.");
   }
 
   yybegin(YYINITIAL);
@@ -195,6 +202,10 @@ import java_cup.runtime.Symbol;
     case '"': string_buf.append('"'); break;
   }
   if (string_buf.length() >= MAX_STR_CONST) { string_too_long = true; }
+}
+
+<STRING>\\\u0000 {
+  escaped_null_in_string = true;
 }
 
 <STRING>\\. {

@@ -1,2 +1,1 @@
-	-1 (escapednull)	 escaped null char in a string
 	-1 (weirdcharcomment)	 various binary characters in a comment [submission crashed on this input]
