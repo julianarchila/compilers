@@ -87,11 +87,10 @@ import java_cup.runtime.Symbol;
 
 %%
 
-<YYINITIAL>[ \t\f\r\u000B]   { /*Do nothing because is whitespace or special character*/ }
+<YYINITIAL>[ \t\f\r\u000B]   { /*Consumir espacios y caracteres especiales*/ }
 <YYINITIAL>[\n]   { curr_lineno++; }
 
 <YYINITIAL>[0-9]+   {
-  /* Define an integer value */
   return new Symbol(TokenConstants.INT_CONST, AbstractTable.inttable.addString(yytext()));
 }
 
@@ -144,7 +143,7 @@ import java_cup.runtime.Symbol;
 <YYINITIAL>","  { return new Symbol(TokenConstants.COMMA); }
 <YYINITIAL>"@"  { return new Symbol(TokenConstants.AT); }
 
-<YYINITIAL>"--"[^\n]* { /* skip till end of line */ }
+<YYINITIAL>"--"[^\n]* { /* Para comentarios de una sola linea, consumir todos los caracteres excepto el salto de linea*/ }
 
 <YYINITIAL>"(*" {
   comment_depth = 1;
@@ -161,7 +160,7 @@ import java_cup.runtime.Symbol;
   if (comment_depth == 0) { yybegin(YYINITIAL); }
 }
 <COMMENT>\n { curr_lineno++; }
-<COMMENT>\r|. { /* consume */ }
+<COMMENT>\r|. { /* Consumir todos los caracteres en comentarios de bloque, \r esta por que . no cubre todos los caracteres*/ }
 
 <YYINITIAL>\" {
   string_buf.setLength(0);
@@ -237,7 +236,7 @@ import java_cup.runtime.Symbol;
 
 
 
-.   { /* Any other single char is an error */
+.   { /* Cualquier otro simbolo lo guardamos como error*/
         return new Symbol(TokenConstants.ERROR, yytext());
   }
 
