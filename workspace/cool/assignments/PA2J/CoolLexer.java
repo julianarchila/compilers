@@ -24,6 +24,7 @@ class CoolLexer implements java_cup.runtime.Scanner {
     // For assembling string constants
     StringBuffer string_buf = new StringBuffer();
     boolean string_too_long = false;
+    boolean null_in_string = false;
     // For nested block comments
     int comment_depth = 0;
     private int curr_lineno = 1;
@@ -646,6 +647,7 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						{
   string_buf.setLength(0);
   string_too_long = false;
+  null_in_string = false;
   yybegin(STRING);
 }
 					case -25:
@@ -778,6 +780,10 @@ class CoolLexer implements java_cup.runtime.Scanner {
     yybegin(YYINITIAL);
     return new Symbol(TokenConstants.ERROR, "String constant too long");
   }
+  if (null_in_string){
+    yybegin(YYINITIAL);
+    return new Symbol(TokenConstants.ERROR, "String contains null character");
+  }
   yybegin(YYINITIAL);
   return new Symbol(TokenConstants.STR_CONST, AbstractTable.stringtable.addString(string_buf.toString()));
 }
@@ -785,8 +791,7 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						break;
 					case 53:
 						{
-  yybegin(YYINITIAL);
-  return new Symbol(TokenConstants.ERROR, "String contains null character");
+  null_in_string = true;
 }
 					case -54:
 						break;

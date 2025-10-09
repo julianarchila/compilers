@@ -1,4 +1,4 @@
 #name "./weirdcharcomment.cool"
 Exception in thread "main" java.lang.Error: Lexical Error: Unmatched Input.
-	at CoolLexer.next_token(CoolLexer.java:539)
+	at CoolLexer.next_token(CoolLexer.java:540)
 	at Lexer.main(Lexer.java:43)
