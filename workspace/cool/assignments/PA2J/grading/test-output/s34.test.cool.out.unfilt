@@ -1,8 +1,0 @@
-#name "./s34.test.cool"
-#1 OBJECTID before_it
-#3 ERROR "\\"
-#4 ERROR "Unterminated string constant"
-#4 OBJECTID doens
-#4 ERROR "'"
-#4 OBJECTID t
-#4 OBJECTID end

@@ -197,6 +197,12 @@ import java_cup.runtime.Symbol;
   if (string_buf.length() >= MAX_STR_CONST) { string_too_long = true; }
 }
 
+<STRING>\\\n {
+  curr_lineno++;
+  string_buf.append('\n');
+  if (string_buf.length() >= MAX_STR_CONST) { string_too_long = true; }
+}
+
 <STRING>\n {
   curr_lineno++;
   yybegin(YYINITIAL);
