@@ -61,6 +61,9 @@ import java_cup.runtime.Symbol;
     case STRING: 
       yy_lexical_state = YYINITIAL;
       return new Symbol(TokenConstants.ERROR, "EOF in string constant");
+    case COMMENT:
+      yy_lexical_state = YYINITIAL;
+      return new Symbol(TokenConstants.ERROR, "EOF in comment");
     case YYINITIAL:
 	/* nothing special to do in the initial state */
 	break;
@@ -81,7 +84,7 @@ import java_cup.runtime.Symbol;
 
 %%
 
-<YYINITIAL>[ \t\f\v\r]   { /*Do nothing because is whitespace or special character*/ }
+<YYINITIAL>[ \t\f\r\u000B]   { /*Do nothing because is whitespace or special character*/ }
 <YYINITIAL>[\n]   { curr_lineno++; }
 
 <YYINITIAL>[0-9]+   {
