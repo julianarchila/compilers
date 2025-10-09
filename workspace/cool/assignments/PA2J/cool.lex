@@ -79,6 +79,7 @@ import java_cup.runtime.Symbol;
 %eofval}
 
 %class CoolLexer
+%unicode
 %cup
 
 %state STRING
@@ -160,7 +161,7 @@ import java_cup.runtime.Symbol;
   if (comment_depth == 0) { yybegin(YYINITIAL); }
 }
 <COMMENT>\n { curr_lineno++; }
-<COMMENT>. { /* consume */ }
+<COMMENT>\r|. { /* consume */ }
 
 <YYINITIAL>\" {
   string_buf.setLength(0);
