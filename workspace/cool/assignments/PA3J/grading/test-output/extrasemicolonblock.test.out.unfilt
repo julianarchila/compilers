@@ -1,0 +1,9 @@
+"./extrasemicolonblock.test", line 3: parse error at or near ';'
+java.lang.NullPointerException
+	at CUP$CoolParser$actions.CUP$CoolParser$do_action(CoolParser.java:768)
+	at CoolParser.do_action(CoolParser.java:404)
+	at java_cup.runtime.lr_parser.parse(lr_parser.java:584)
+	at Parser.main(Parser.java:37)
+java.lang.Throwable: Unexpected exception in parser
+	at Utilities.fatalError(Utilities.java:40)
+	at Parser.main(Parser.java:45)

@@ -55,7 +55,13 @@ do
    if [ -f $xname ]; then
       ln -s $xname $f
    else
-      echo $f is not compiled for $arch
+      # Fallback to non-arch-specific binary location
+      xname_fallback=${COOL_INST}/bin/$f
+      if [ -f $xname_fallback ]; then
+         ln -s $xname_fallback $f
+      else
+         echo $f is not compiled for $arch
+      fi
    fi
 done
 

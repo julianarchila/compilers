@@ -41,11 +41,11 @@ CLS= ${CFIL:.java=.class}
 OUTPUT= good.output bad.output
 
 JAVAC := javac
-CUP := /usr/class/cs143/bin/java_cup
 
 CUPCLASSPATH := ${CLASSDIR}/lib
+CLASSPATH := ${CUPCLASSPATH}/java-cup-11a.jar:${CUPCLASSPATH}/jlex.jar
 
-CLASSPATH := ${CUPCLASSPATH}:.
+CUP := java -jar ${CUPCLASSPATH}/java-cup-11a.jar
 
 source: ${SRC} ${TSRC} ${LSRC} ${LIBS} ${CSRC}
 
@@ -57,7 +57,8 @@ ${OUTPUT}:	parser good.cl bad.cl
 parser: Makefile ${CLS}
 	@rm -f parser
 	echo '#!/bin/sh' >> parser
-	echo 'java -classpath ${CLASSPATH}:`dirname $$0` Parser $$*' >> parser
+	echo 'DIR=`dirname $$0`' >> parser
+	echo 'java -classpath "$$DIR/../../lib/java-cup-11a.jar:$$DIR/../../lib/jlex.jar:$$DIR:." Parser $$*' >> parser
 	chmod 755 parser
 
 CoolParser.java TokenConstants.java: cool.cup
@@ -72,8 +73,9 @@ dotest:	parser good.cl bad.cl
 
 ## cool-tree.class is not a real class file, but we need to have it
 ## for dependency tracking
+
 ${CLS}: ${CFIL}
-	${JAVAC} -g -nowarn -classpath ${CLASSPATH} ${CFIL}
+	${JAVAC} -g -nowarn -classpath ${CLASSPATH}:. ${CFIL}
 	touch cool-tree.class
 
 ${LIBS}:
