@@ -156,8 +156,7 @@ attribute ::=
 		{: RESULT = new attr(curr_lineno(), oid, tid,
 			new no_expr(curr_lineno())); :}
 	| OBJECTID:oid COLON TYPEID:tid ASSIGN expr:e SEMI
-		{: RESULT = new attr(curr_lineno(), oid, tid,
-			new no_expr(curr_lineno())); :}
+		{: RESULT = new attr(curr_lineno(), oid, tid, e); :}
 	| error SEMI
 	;
 
