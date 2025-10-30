@@ -1,4 +1,3 @@
-
 import java_cup.runtime.*;
 
 /* Stuff enclosed in {: :} is copied verbatim to the class containing
@@ -102,27 +101,25 @@ precedence left DOT;
 // Definición de constructores: 'cool-tree.aps'
 
 program ::=
-	// [[class; ]] +
 	class_list:cl
 	    {: RESULT = new programc(curr_lineno(), cl); :}
     ;
 
+// [[class; ]]+
 class_list ::=
-	// (una única clase)
 	class:c
 	    {: RESULT = (new Classes(curr_lineno())).appendElement(c); :}
-	// (varias clases)
 	| class_list:cl class:c
 	    {: RESULT = cl.appendElement(c); :}
 	;
 
 class ::=
-	// class TYPE { [[feature; ]] ∗ };
-	// (si no se especifica una superclase, la clase hereda de la clase Object)
+	// class TYPE { [[feature; ]]^∗ };
+	// hereda por defecto de object
 	CLASS TYPEID:n LBRACE feature_list:fl RBRACE SEMI
 		{: RESULT = new class_c(curr_lineno(), n,
 			AbstractTable.idtable.addString("Object"), fl, curr_filename()); :}
-   	// class TYPE inherits TYPE { [[feature; ]] ∗ };
+   	// class TYPE inherits TYPE { [[feature; ]]^∗ };
 	| CLASS TYPEID:n INHERITS TYPEID:p LBRACE feature_list:fl RBRACE SEMI
 		{: RESULT = new class_c(curr_lineno(), n, p, fl, curr_filename()); :}
 	| CLASS TYPEID error SEMI
@@ -131,7 +128,7 @@ class ::=
 	;
 
 feature_list ::=
-	// (la lista puede estar vacía, pero no puede contener elementos vacíos)
+	// lista vacia
 		{: RESULT = new Features(curr_lineno()); :}
 	| feature_list:fl feature:f
 		{: RESULT = fl.appendElement(f); :}
@@ -167,26 +164,33 @@ formal_list ::=
 		{: RESULT = fl.appendElement(f); :}
 	;
 
+// ID : TYPE
 formal ::=
 	OBJECTID:oid COLON TYPEID:tid
 		{: RESULT = new formalc(curr_lineno(), oid, tid); :}
 	;
 
+// ID : TYPE [ <- expr ] [[, ID : TYPE [ <- expr ]]]∗ in expr
 let_body ::=
+	// ID: TYPE IN expr
 	OBJECTID:oid COLON TYPEID:tid IN expr:e
 		{: RESULT = new let(curr_lineno(), oid, tid,
 			new no_expr(curr_lineno()), e); :}
+	// ID: TYPE <- expr IN expr
 	| OBJECTID:oid COLON TYPEID:tid ASSIGN expr:e1 IN expr:e2
 		{: RESULT = new let(curr_lineno(), oid, tid, e1, e2); :}
+	// ID: TYPE, (let_body) 
 	| OBJECTID:oid COLON TYPEID:tid COMMA let_body:lr
 		{: RESULT = new let(curr_lineno(), oid, tid,
 			new no_expr(curr_lineno()), lr); :}
+	// ID: TYPE <- expr, (let_body) 
 	| OBJECTID:oid COLON TYPEID:tid ASSIGN expr:e COMMA let_body:lr
 		{: RESULT = new let(curr_lineno(), oid, tid, e, lr); :}
-	// Error result for Let
+	// Error para las expresiones del let
 	| error COMMA let_body
 	;
 
+// [[ID : TYPE => expr; ]]+
 case_list ::=
 	case_branch:cb
 		{: RESULT = (new Cases(curr_lineno())).appendElement(cb); :}
@@ -194,11 +198,13 @@ case_list ::=
 		{: RESULT = cl.appendElement(cb); :}
 	;
 
+// ID : TYPE => expr; 
 case_branch ::=
 	OBJECTID:oid COLON TYPEID:tid DARROW expr:e SEMI
 		{: RESULT = new branch(curr_lineno(), oid, tid, e); :}
 	;
 
+//  [ expr [[, expr]]^∗]
 expr_list ::=
 	// (lista vacía)
 		{: RESULT = new Expressions(curr_lineno()); :}
@@ -208,6 +214,7 @@ expr_list ::=
 		{: RESULT = el.appendElement(e); :}
 	;
 
+// [[expr; ]]^+
 expr_block ::=
 	expr:e SEMI
 		{: RESULT = (new Expressions(curr_lineno())).appendElement(e); :}
@@ -221,13 +228,13 @@ expr ::=
 	OBJECTID:oid ASSIGN expr:e
 		{: RESULT = new assign(curr_lineno(), oid, e); :}
 	| OBJECTID ASSIGN error
-	// expr@TYPE.ID( [ expr [[, expr]] ∗ ] )
+	// expr@TYPE.ID( [ expr [[, expr]]^∗ ] )
 	| expr:e AT TYPEID:tid DOT OBJECTID:oid LPAREN expr_list:el RPAREN
 		{: RESULT = new static_dispatch(curr_lineno(), e, tid, oid, el); :}
-	// expr.ID( [ expr [[, expr]] ∗ ] )
+	// expr.ID( [ expr [[, expr]]^∗ ] )
 	| expr:e DOT OBJECTID:oid LPAREN expr_list:el RPAREN
 		{: RESULT = new dispatch(curr_lineno(), e, oid, el); :}
-	// ID( [ expr [[, expr]] ∗ ] )
+	// ID( [ expr [[, expr]]^∗ ] )
 	| OBJECTID:oid LPAREN expr_list:el RPAREN
 		{: RESULT = new dispatch(curr_lineno(), new object(curr_lineno(),
 			AbstractTable.idtable.addString("self")), oid, el); :}
@@ -240,9 +247,10 @@ expr ::=
 	// { [[expr; ]] + }
 	| LBRACE expr_block:eb RBRACE
 		{: RESULT = new block(curr_lineno(), eb); :}
+	// let
 	| LET let_body:lr
 		{: RESULT = lr; :}
-	// case expr of [[ID : TYPE => expr; ]] + esac
+	// case expr of [[ID : TYPE => expr; ]]^+ esac
 	| CASE expr:e OF case_list:cl ESAC
 		{: RESULT = new typcase(curr_lineno(), e, cl); :}
 	// new TYPE
