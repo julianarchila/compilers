@@ -76,7 +76,7 @@ nonterminal Expression expr;
 nonterminal Cases case_list;
 nonterminal branch case_branch;
 nonterminal attr attribute;
-nonterminal let let_remainder;
+nonterminal let let_body;
 
 // PRECEDENCE AND ASSOCIATIVITY DECLARATIONS //////////////////////////////////
 // Ref.: <http://www2.cs.tum.edu/projects/cup/docs.php#precedence>
@@ -172,19 +172,19 @@ formal ::=
 		{: RESULT = new formalc(curr_lineno(), oid, tid); :}
 	;
 
-let_remainder ::=
+let_body ::=
 	OBJECTID:oid COLON TYPEID:tid IN expr:e
 		{: RESULT = new let(curr_lineno(), oid, tid,
 			new no_expr(curr_lineno()), e); :}
 	| OBJECTID:oid COLON TYPEID:tid ASSIGN expr:e1 IN expr:e2
 		{: RESULT = new let(curr_lineno(), oid, tid, e1, e2); :}
-	| OBJECTID:oid COLON TYPEID:tid COMMA let_remainder:lr
+	| OBJECTID:oid COLON TYPEID:tid COMMA let_body:lr
 		{: RESULT = new let(curr_lineno(), oid, tid,
 			new no_expr(curr_lineno()), lr); :}
-	| OBJECTID:oid COLON TYPEID:tid ASSIGN expr:e COMMA let_remainder:lr
+	| OBJECTID:oid COLON TYPEID:tid ASSIGN expr:e COMMA let_body:lr
 		{: RESULT = new let(curr_lineno(), oid, tid, e, lr); :}
 	// Error result for Let
-	| error COMMA let_remainder
+	| error COMMA let_body
 	;
 
 case_list ::=
@@ -240,7 +240,7 @@ expr ::=
 	// { [[expr; ]] + }
 	| LBRACE expr_block:eb RBRACE
 		{: RESULT = new block(curr_lineno(), eb); :}
-	| LET let_remainder:lr
+	| LET let_body:lr
 		{: RESULT = lr; :}
 	// case expr of [[ID : TYPE => expr; ]] + esac
 	| CASE expr:e OF case_list:cl ESAC
