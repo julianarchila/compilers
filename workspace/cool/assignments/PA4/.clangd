@@ -1,0 +1,14 @@
+CompileFlags:
+  Add: [
+    -I.,
+    -I../../include/PA4,
+    -I../../src/PA4,
+    -DDEBUG,
+    -Wall,
+    -Wno-unused,
+    -Wno-write-strings,
+    -Wno-deprecated
+  ]
+
+Diagnostics:
+  UnusedIncludes: Ignore
