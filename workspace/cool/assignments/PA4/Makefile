@@ -13,7 +13,7 @@ TSRC= mycoolc mysemant cool-tree.aps
 CGEN=
 HGEN=
 LIBS= lexer parser cgen
-CFIL= semant.cc ${CSRC} ${CGEN}
+CFIL= semant.cc semant_tables.cc semant_ast.cc ${CSRC} ${CGEN}
 LSRC= Makefile
 OBJS= ${CFIL:.cc=.o}
 OUTPUT= good.output bad.output

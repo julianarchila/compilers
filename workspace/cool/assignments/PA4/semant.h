@@ -9,12 +9,27 @@
 #include "list.h"
 #include <map>
 #include <list>
+#include <vector>
+#include <set>
 
 #define TRUE 1
 #define FALSE 0
 
 class ClassTable;
 typedef ClassTable *ClassTableP;
+
+// Typedefs moved from semant.cc
+typedef SymbolTable<Symbol, method_class> MethodTable;
+
+// Global symbols used across semantic analysis
+extern Symbol arg, arg2, Bool, concat, cool_abort, copy, Int, in_int, in_string, IO, length, Main, main_meth, No_class, No_type, Object, out_int, out_string, prim_slot, self, SELF_TYPE, Str, str_field, substr, type_name, val;
+
+// Global state
+extern Class_ curr_class;
+extern ClassTable* classtable;
+extern SymbolTable<Symbol, Symbol> attribtable;
+extern std::map<Symbol, MethodTable> methodtables;
+extern std::ostream& log;
 
 // This is a structure that may be used to contain the semantic
 // information such as the inheritance graph.  You may use it or not as
