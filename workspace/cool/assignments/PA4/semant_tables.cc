@@ -12,7 +12,7 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
     // a map from Symbol to Class_
 
     // Let us build the inheritance graph and check for loops.
-    log << "Now building the inheritance graph:" << std::endl;
+    SEMLOG << "Now building the inheritance graph:" << std::endl;
 
     // Insert all the classes into m_classes.
     for (int i = classes->first(); classes->more(i); i = classes->next(i)) {
@@ -42,7 +42,7 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
 
         curr_class = classes->nth(i);
 
-        log << "    " << curr_class->GetName();
+        SEMLOG << "    " << curr_class->GetName();
 
         Symbol parent_name = curr_class->GetParent();
         while (parent_name != Object && parent_name != classes->nth(i)->GetName()) {
@@ -59,14 +59,14 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
                 return;
             }
 
-            log << " <- " << parent_name;
+            SEMLOG << " <- " << parent_name;
             curr_class = m_classes[parent_name];
             parent_name = curr_class->GetParent();
 
         }
 
         if (parent_name == Object) {
-            log << " <- " << parent_name << std::endl;
+            SEMLOG << " <- " << parent_name << std::endl;
         } else {
             semant_error(curr_class) << "Error! Cycle inheritance!" << std::endl;
             return;
@@ -74,7 +74,7 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
 
     }
 
-    log << std::endl;
+    SEMLOG << std::endl;
 
 }
 

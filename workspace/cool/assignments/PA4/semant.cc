@@ -1,22 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <vector>
 #include <list>
-#include <set>
 #include <sstream>
-#include <string>
 #include <cstring>
 #include "semant.h"
 #include "utilities.h"
 
-static bool TESTING = false;
-static std::ostringstream nop_sstream;
-std::ostream &log = TESTING ? std::cout : nop_sstream;
+
 
 
 extern int semant_debug;
 extern char *curr_filename;
+
+// Toggle this to enable/disable semantic debug logging.
+bool kSemantLog = false;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -120,11 +118,11 @@ void program_class::semant() {
     }
 
     // Pass through every method in every class, construct the methodtables.
-    log << "Now constructing the methodtables:" << std::endl;
+    SEMLOG << "Now constructing the methodtables:" << std::endl;
 
     // std::map<Symbol, Class_> m_classes;
     for (std::map<Symbol, Class_>::iterator iter = classtable->m_classes.begin(); iter != classtable->m_classes.end(); ++iter) {
-        log << "class " << iter->first << ":" << std::endl;
+        SEMLOG << "class " << iter->first << ":" << std::endl;
 
         Symbol class_name = iter->first;
         methodtables[class_name].enterscope();
@@ -136,7 +134,7 @@ void program_class::semant() {
     }
 
     // Now find illegal method overriding.
-    log << "Now searching for illegal method overriding:" << std::endl;
+    SEMLOG << "Now searching for illegal method overriding:" << std::endl;
 
     // Iterate over all classes
     for (std::map<Symbol, Class_>::iterator iter = classtable->m_classes.begin(); iter != classtable->m_classes.end(); ++iter) {
@@ -144,7 +142,7 @@ void program_class::semant() {
         // For some class, grab all its methods.
         Symbol class_name = iter->first;
         curr_class = classtable->m_classes[class_name];
-        log << "    Consider class " << class_name << ":" << std::endl;
+        SEMLOG << "    Consider class " << class_name << ":" << std::endl;
 
         Features curr_features = classtable->m_classes[class_name]->GetFeatures();
 
@@ -157,7 +155,7 @@ void program_class::semant() {
                 continue;
             }
             
-            log << "        method " << curr_method->GetName() << std::endl;
+            SEMLOG << "        method " << curr_method->GetName() << std::endl;
 
             Formals curr_formals = ((method_class*)(curr_method))->GetFormals();
             
@@ -166,7 +164,7 @@ void program_class::semant() {
             for (std::list<Symbol>::reverse_iterator iter = path.rbegin(); iter != path.rend(); ++iter) {
                 
                 Symbol ancestor_name = *iter;
-                log << "            ancestor " << ancestor_name << std::endl;
+                SEMLOG << "            ancestor " << ancestor_name << std::endl;
                 method_class* method = methodtables[ancestor_name].lookup(curr_method->GetName());
                 
                 if (method != NULL) {
@@ -176,13 +174,13 @@ void program_class::semant() {
                     int k1 = formals->first(), k2 = curr_formals->first();
                     for (; formals->more(k1) && curr_formals->more(k2); k1 = formals->next(k1), k2 = formals->next(k2)) {
                         if (formals->nth(k1)->GetType() != curr_formals->nth(k2)->GetType()) {
-                            log << "error" << std::endl;
+                            SEMLOG << "error" << std::endl;
                             classtable->semant_error(classtable->m_classes[class_name]) << "Method override error: formal type not match." << std::endl;
                         }
                     }
 
                     if (formals->more(k1) || curr_formals->more(k2)) {
-                        log << "error" << std::endl;
+                        SEMLOG << "error" << std::endl;
                         classtable->semant_error(classtable->m_classes[class_name]) << "Method override error: length of formals not match." << std::endl;
                     }
                 }
@@ -190,15 +188,15 @@ void program_class::semant() {
         }
     }
 
-    log << std::endl;
+    SEMLOG << std::endl;
     
     // Let's start checking all the types.
-    log << "Now checking all the types:" << std::endl;
+    SEMLOG << "Now checking all the types:" << std::endl;
 
     for (int i = classes->first(); classes->more(i); i = classes->next(i)) {
         curr_class = classes->nth(i);
 
-        log << "Checking class " << curr_class->GetName() << ":" << std::endl;
+        SEMLOG << "Checking class " << curr_class->GetName() << ":" << std::endl;
 
         // Get the inheritance path, add all the attributes.
         std::list<Symbol> path = classtable->GetInheritancePath(curr_class->GetName());
@@ -225,7 +223,7 @@ void program_class::semant() {
             attribtable.exitscope();
         }
 
-        log << std::endl;
+        SEMLOG << std::endl;
     }
 
     if (classtable->errors()) {
