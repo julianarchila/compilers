@@ -117,10 +117,9 @@ void program_class::semant() {
         exit(1);
     }
 
-    // Pass through every method in every class, construct the methodtables.
+    // Iterar por las clases y guardar los metodos definids en cada clase en el correspondiente methodtable
     SEMLOG << "Now constructing the methodtables:" << std::endl;
 
-    // std::map<Symbol, Class_> m_classes;
     for (std::map<Symbol, Class_>::iterator iter = classtable->m_classes.begin(); iter != classtable->m_classes.end(); ++iter) {
         SEMLOG << "class " << iter->first << ":" << std::endl;
 
@@ -135,22 +134,22 @@ void program_class::semant() {
         }
     }
 
-    // Now find illegal method overriding.
+    // Mirar si alguna clase redefine un metodo de forma incorrecta:
+    // 1. Cambia el tipo de los formals (parametros)
+    // 2. Cambia la cantidad de formals (parametros) 
     SEMLOG << "Now searching for illegal method overriding:" << std::endl;
 
-    // Iterate over all classes
     for (std::map<Symbol, Class_>::iterator iter = classtable->m_classes.begin(); iter != classtable->m_classes.end(); ++iter) {
         
-        // For some class, grab all its methods.
         Symbol class_name = iter->first;
-        curr_class = classtable->m_classes[class_name];
+        curr_class = iter->second;;
+
         SEMLOG << "    Consider class " << class_name << ":" << std::endl;
 
         Features curr_features = classtable->m_classes[class_name]->GetFeatures();
 
         for (int j = curr_features->first(); curr_features->more(j); j = curr_features->next(j)) {
             
-            // We are checking one method of a class.
             Feature curr_method = curr_features->nth(j);
 
             if (curr_method->IsMethod() == false) {
@@ -162,29 +161,31 @@ void program_class::semant() {
             Formals curr_formals = ((method_class*)(curr_method))->GetFormals();
             
             std::list<Symbol> path = classtable->GetInheritancePath(class_name);
-            // We are checking every method with the same name in the ancestors
+
             for (std::list<Symbol>::reverse_iterator iter = path.rbegin(); iter != path.rend(); ++iter) {
                 
                 Symbol ancestor_name = *iter;
                 SEMLOG << "            ancestor " << ancestor_name << std::endl;
                 method_class* method = methodtables[ancestor_name].lookup(curr_method->GetName());
+
+                if (method== NULL){
+                  continue;
+                }
                 
-                if (method != NULL) {
-                    // A method is found.
-                    Formals formals = method->GetFormals();
+                // A method is found.
+                Formals formals = method->GetFormals();
 
-                    int k1 = formals->first(), k2 = curr_formals->first();
-                    for (; formals->more(k1) && curr_formals->more(k2); k1 = formals->next(k1), k2 = formals->next(k2)) {
-                        if (formals->nth(k1)->GetType() != curr_formals->nth(k2)->GetType()) {
-                            SEMLOG << "error" << std::endl;
-                            classtable->semant_error(classtable->m_classes[class_name]) << "Method override error: formal type not match." << std::endl;
-                        }
-                    }
-
-                    if (formals->more(k1) || curr_formals->more(k2)) {
+                int k1 = formals->first(), k2 = curr_formals->first();
+                for (; formals->more(k1) && curr_formals->more(k2); k1 = formals->next(k1), k2 = formals->next(k2)) {
+                    if (formals->nth(k1)->GetType() != curr_formals->nth(k2)->GetType()) {
                         SEMLOG << "error" << std::endl;
-                        classtable->semant_error(classtable->m_classes[class_name]) << "Method override error: length of formals not match." << std::endl;
+                        classtable->semant_error(classtable->m_classes[class_name]) << "Method override error: formal types dont match." << std::endl;
                     }
+                }
+
+                if (formals->more(k1) || curr_formals->more(k2)) {
+                    SEMLOG << "error" << std::endl;
+                    classtable->semant_error(classtable->m_classes[class_name]) << "Method override error: length of formals not match." << std::endl;
                 }
             }
         }
