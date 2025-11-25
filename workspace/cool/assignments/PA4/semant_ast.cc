@@ -34,9 +34,15 @@ void attr_class::AddAttribToTable(Symbol class_name) {
 void method_class::CheckFeatureType() {
     SEMLOG << "    Checking method \"" << name << "\"" << std::endl;
 
+    // miramos que el tipo de retorno exista
     if (classtable->m_classes.find(return_type) == classtable->m_classes.end() && return_type != SELF_TYPE) {
         classtable->semant_error(curr_class) << "Error! return type " << return_type << " doesn't exist." << std::endl;
     }
+
+    // Añadir los formals a un nuevo scope y hacer validaciones:
+    // 1. Que no tengan nombres repetidos
+    // 2. Que el tipo de cada formal exista
+    // 3. Que el tipo no sea 'self'
     attribtable.enterscope();
     std::set<Symbol> used_names;
     for (int i = formals->first(); formals->more(i); i = formals->next(i)) {
@@ -57,6 +63,7 @@ void method_class::CheckFeatureType() {
         attribtable.addid(formals->nth(i)->GetName(), new Symbol(formals->nth(i)->GetType()));
     }
     
+    // Verificar que el tipo de retorno sea correcto
     Symbol expr_type = expr->CheckExprType();
     if (classtable->CheckInheritance(return_type, expr_type) == false) {
         classtable->semant_error(curr_class) << "Error! return type is not ancestor of expr type. " << std::endl;

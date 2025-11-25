@@ -85,20 +85,18 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
 }
 
 
-// ClassTable::CheckInheritance
-// ============================
-// check whether ancestor is a (direct or indirect) ancestor of child
-bool ClassTable::CheckInheritance(Symbol ancestor, Symbol child) {
-    if (ancestor == SELF_TYPE) {
-        return child == SELF_TYPE;
+// Verificar que a sea ancestro de b
+bool ClassTable::CheckInheritance(Symbol a, Symbol b) {
+    if (a == SELF_TYPE) {
+        return b == SELF_TYPE;
     }
 
-    if (child == SELF_TYPE) {
-        child = curr_class->GetName();
+    if (b == SELF_TYPE) {
+        b = curr_class->GetName();
     }
 
-    for (; child != No_class; child = m_classes.find(child)->second->GetParent()) {
-        if (child == ancestor) {
+    for (; b != No_class; b = m_classes.find(b)->second->GetParent()) {
+        if (b == a) {
             return true;
         }
     }
