@@ -201,7 +201,8 @@ void program_class::semant() {
 
         SEMLOG << "Checking class " << curr_class->GetName() << ":" << std::endl;
 
-        // Get the inheritance path, add all the attributes.
+        // Miramos el camino de herencia de la clase y vamos añadiendo en scopes diferentes los atributos de
+        // cada una de las clases en el camino 
         std::list<Symbol> path = classtable->GetInheritancePath(curr_class->GetName());
         for (std::list<Symbol>::iterator iter = path.begin(); iter != path.end(); iter++) {
             curr_class = classtable->m_classes[*iter];
@@ -222,6 +223,7 @@ void program_class::semant() {
             curr_feature->CheckFeatureType();
         }
 
+        // Como estamos reutilizando el attribtable, tenemos que limpiarla antes de utilizarla para la siguiente clase
         for (int j = 0; j < path.size(); ++j) {
             attribtable.exitscope();
         }
