@@ -3,6 +3,9 @@
 
 // Implementations of ClassTable methods
 
+
+
+
 ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) {
     
     install_basic_classes();
@@ -14,7 +17,7 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
     // Let us build the inheritance graph and check for loops.
     SEMLOG << "Now building the inheritance graph:" << std::endl;
 
-    // Insert all the classes into m_classes.
+    // añadir las clases al map y verificar redeclaraciones
     for (int i = classes->first(); classes->more(i); i = classes->next(i)) {
 
         // class name cannot be SELF_TYPE
@@ -22,7 +25,6 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
             semant_error(classes->nth(i)) << "Error! SELF_TYPE redeclared!" << std::endl;
         }
 
-        // class cannot be declared before
         if (m_classes.find(classes->nth(i)->GetName()) == m_classes.end()) {
             m_classes.insert(std::make_pair(classes->nth(i)->GetName(), classes->nth(i)));
         } else {
@@ -32,12 +34,16 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
 
     }
 
-    // Check if we can find class Main.
+    // Verificamos que existe la clase Main
     if (m_classes.find(Main) == m_classes.end()) {
         semant_error() << "Class Main is not defined." << std::endl;
     }
 
-    // Check the inheritance one by one.
+    // Chequeos de herencia:
+    // 1. Herede de una clase que exista
+    // 2. No herede de si misma
+    // 3. Que no herede de Int, Str, Bool o SELF_TYPE
+    // 4. Que no haya ciclos en la herencia
     for (int i = classes->first(); classes->more(i); i = classes->next(i)) {
 
         curr_class = classes->nth(i);
@@ -47,13 +53,13 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
         Symbol parent_name = curr_class->GetParent();
         while (parent_name != Object && parent_name != classes->nth(i)->GetName()) {
 
-            // check that the parent of curr_class is present in m_classes
+            // Ver que la clase padre exista en el map
             if (m_classes.find(parent_name) == m_classes.end()) {
                 semant_error(curr_class) << "Error! Cannot find class " << parent_name << std::endl;
                 return;
             }
 
-            // check that the parent is not Int or Bool or Str or SELF_TYPE
+            // ver que la clase no herede de Int, Str, Bool o SELF_TYPE
             if (parent_name == Int || parent_name == Str || parent_name == SELF_TYPE || parent_name == Bool) {
                 semant_error(curr_class) << "Error! Class " << curr_class->GetName() << " cannot inherit from " << parent_name << std::endl;
                 return;

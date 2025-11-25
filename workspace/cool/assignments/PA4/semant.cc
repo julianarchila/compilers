@@ -125,8 +125,10 @@ void program_class::semant() {
         SEMLOG << "class " << iter->first << ":" << std::endl;
 
         Symbol class_name = iter->first;
+        Class_ current_class = iter->second;
+        
         methodtables[class_name].enterscope();
-        Features curr_features = classtable->m_classes[class_name]->GetFeatures();
+        Features curr_features = current_class->GetFeatures();
         for (int j = curr_features->first(); curr_features->more(j); j = curr_features->next(j)) {
              Feature curr_feature = curr_features->nth(j);
              curr_feature->AddMethodToTable(class_name);

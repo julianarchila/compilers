@@ -53,8 +53,9 @@ class Feature_class : public tree_node {
 public:
    tree_node *copy()     { return copy_Feature(); }
    virtual Feature copy_Feature() = 0;
+
+  //-----
    virtual void CheckFeatureType() = 0;
-   //virtual void AddToTable(Symbol class_name) = 0;
    virtual void AddMethodToTable(Symbol class_name) = 0;
    virtual void AddAttribToTable(Symbol class_name) = 0;
    virtual Symbol GetName() = 0;
