@@ -238,7 +238,7 @@ Symbol loop_class::CheckExprType() {
 // 
 Symbol typcase_class::CheckExprType() {
 
-    Symbol expr_type = expr->CheckExprType();
+    expr->CheckExprType();
 
     Case branch;
     std::vector<Symbol> branch_types;
@@ -251,8 +251,8 @@ Symbol typcase_class::CheckExprType() {
         branch_type_decls.push_back(((branch_class *)branch)->GetTypeDecl());
     }
 
-    for (int i = 0; i < branch_types.size() - 1; ++i) {
-        for (int j = i + 1; j < branch_types.size(); ++j) {
+    for (int i = 0; i < branch_type_decls.size() - 1; ++i) {
+        for (int j = i + 1; j < branch_type_decls.size(); ++j) {
             if (branch_type_decls[i] == branch_type_decls[j]) {
                 classtable->semant_error(curr_class) << "Error! Two branches have same type." << std::endl;
             }
@@ -331,6 +331,7 @@ Symbol plus_class::CheckExprType() {
     return type;
 }
 
+// subtract - minus
 Symbol sub_class::CheckExprType() {
     Symbol e1_type = e1->CheckExprType();
     Symbol e2_type = e2->CheckExprType();
@@ -367,6 +368,7 @@ Symbol divide_class::CheckExprType() {
     return type;
 }
 
+// neg: ~
 Symbol neg_class::CheckExprType() {
     if (e1->CheckExprType() != Int) {
         classtable->semant_error(curr_class) << "Error! '~' meets non-Int value." << std::endl;
@@ -377,6 +379,7 @@ Symbol neg_class::CheckExprType() {
     return type;
 }
 
+// less than
 Symbol lt_class::CheckExprType() {
     Symbol e1_type = e1->CheckExprType();
     Symbol e2_type = e2->CheckExprType();
@@ -390,9 +393,6 @@ Symbol lt_class::CheckExprType() {
 }
 
 // equal
-// =====
-// any types may be freely compared except for Int, Bool, and Str.
-// 
 Symbol eq_class::CheckExprType() {
     Symbol e1_type = e1->CheckExprType();
     Symbol e2_type = e2->CheckExprType();
@@ -409,6 +409,7 @@ Symbol eq_class::CheckExprType() {
     return type;
 }
 
+// less equal
 Symbol leq_class::CheckExprType() {
     Symbol e1_type = e1->CheckExprType();
     Symbol e2_type = e2->CheckExprType();
@@ -446,6 +447,7 @@ Symbol string_const_class::CheckExprType() {
     return type;
 }
 
+// new TYPE
 Symbol new__class::CheckExprType() {
     if (type_name != SELF_TYPE && classtable->m_classes.find(type_name) == classtable->m_classes.end()) {
         classtable->semant_error(curr_class) << "Error! type " << type_name << " doesn't exist." << std::endl;
