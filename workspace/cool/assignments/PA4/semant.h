@@ -57,7 +57,7 @@ public:
 
 	// These methods are not in the starting code.
 	bool CheckInheritance(Symbol ancestor, Symbol child);
-	Symbol FindCommonAncestor(Symbol type1, Symbol type2);
+	Symbol LUB(Symbol type1, Symbol type2);
 	std::list<Symbol> GetInheritancePath(Symbol type);
 };
 

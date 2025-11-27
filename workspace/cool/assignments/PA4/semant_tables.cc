@@ -123,21 +123,19 @@ std::list<Symbol> ClassTable::GetInheritancePath(Symbol type) {
 }
 
 
-// ClassTable::FindCommonAncestor
-// ==============================
-// find the first common ancestor of two types
-Symbol ClassTable::FindCommonAncestor(Symbol type1, Symbol type2) {
+// Encontrar el LUB entre type1 y type2
+Symbol ClassTable::LUB(Symbol type1, Symbol type2) {
 
     std::list<Symbol> path1 = GetInheritancePath(type1);
     std::list<Symbol> path2 = GetInheritancePath(type2);
 
-    Symbol ret;
+    Symbol common_ancestor;
     std::list<Symbol>::iterator iter1 = path1.begin(),
                                 iter2 = path2.begin();
 
     while (iter1 != path1.end() && iter2 != path2.end()) {
         if (*iter1 == *iter2) {
-            ret = *iter1;
+            common_ancestor = *iter1;
         } else {
             break;
         }
@@ -146,7 +144,7 @@ Symbol ClassTable::FindCommonAncestor(Symbol type1, Symbol type2) {
         iter2++;
     }
 
-    return ret;
+    return common_ancestor;
 }
 
 

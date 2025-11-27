@@ -1,3 +1,4 @@
+#include "cool-tree.h"
 #include "semant.h"
 #include "utilities.h"
 
@@ -148,19 +149,28 @@ Symbol static_dispatch_class::CheckExprType() {
     return type;
 }
 
+
+bool dispatch_class::CheckParams(method_class* method){
+    bool error = false;
+    for (int i = actual->first(); actual->more(i); i = actual->next(i)) {
+        Symbol actual_type = actual->nth(i)->CheckExprType();
+        Symbol formal_type = method->GetFormals()->nth(i)->GetType();
+        if (classtable->CheckInheritance(formal_type, actual_type) == false) {
+            classtable->semant_error(curr_class) << "Error! Actual type " << actual_type << " doesn't suit formal type " << formal_type << std::endl;
+            error = true;
+        }
+    }
+
+    return error;
+}
+
+// dispatch: (expr).ID( [ expr [[, expr]]*] )
 Symbol dispatch_class::CheckExprType() {
     bool error = false;
 
     Symbol expr_type = expr->CheckExprType();
 
-    if (expr_type == SELF_TYPE) {
-        SEMLOG << "Dispatch: class = " << SELF_TYPE << "_" << curr_class->GetName() << std::endl;
-    } else {
-        SEMLOG << "Dispatch: class = " << expr_type << std::endl;
-    }
-
-    // Find the method along the inheritance path.
-    // We want the definition in a subclass.
+    // Buscamos que name (ID) este definido en expr_type o en algun ancestro de expr_type
     std::list<Symbol> path = classtable->GetInheritancePath(expr_type);
     method_class* method = NULL;
     for (std::list<Symbol>::iterator iter = path.begin(); iter != path.end(); ++iter) {
@@ -176,15 +186,9 @@ Symbol dispatch_class::CheckExprType() {
     }
 
     // Check the params.
-    for (int i = actual->first(); actual->more(i); i = actual->next(i)) {
-        Symbol actual_type = actual->nth(i)->CheckExprType();
-        if (method != NULL) {
-            Symbol formal_type = method->GetFormals()->nth(i)->GetType();
-            if (classtable->CheckInheritance(formal_type, actual_type) == false) {
-                classtable->semant_error(curr_class) << "Error! Actual type " << actual_type << " doesn't suit formal type " << formal_type << std::endl;
-                error = true;
-            }
-        }
+    if (method != NULL) {
+      bool checkParamsError = CheckParams(method);
+      if (checkParamsError == true) error = true;
     }
 
     if (error) {
@@ -199,12 +203,7 @@ Symbol dispatch_class::CheckExprType() {
     return type;
 }
 
-// condition
-// =========
-// Expression pred;
-// Expression then_exp;
-// Expression else_exp;
-// 
+// IF - condition
 Symbol cond_class::CheckExprType() {
     if (pred->CheckExprType() != Bool) {
         classtable->semant_error(curr_class) << "Error! Type of pred is not Bool." << std::endl;
@@ -214,14 +213,15 @@ Symbol cond_class::CheckExprType() {
     Symbol else_type = else_exp->CheckExprType();
 
     if (else_type == No_type) {
-        // if there is no 'else'
+        // Si no hay else:
         type = then_type;
     } else {
-        type = classtable->FindCommonAncestor(then_type, else_type);
+        type = classtable->LUB(then_type, else_type);
     }
     return type;
 }
 
+// while
 Symbol loop_class::CheckExprType() {
     if (pred->CheckExprType() != Bool) {
         classtable->semant_error(curr_class) << "Error! Type of pred is not Bool." << std::endl;
@@ -230,6 +230,7 @@ Symbol loop_class::CheckExprType() {
     type = Object;
     return type;
 }
+
 
 // case ... of ...
 // ===============
@@ -251,6 +252,7 @@ Symbol typcase_class::CheckExprType() {
         branch_type_decls.push_back(((branch_class *)branch)->GetTypeDecl());
     }
 
+    // Verificar que no haya casos respetidos
     for (int i = 0; i < branch_type_decls.size() - 1; ++i) {
         for (int j = i + 1; j < branch_type_decls.size(); ++j) {
             if (branch_type_decls[i] == branch_type_decls[j]) {
@@ -259,19 +261,15 @@ Symbol typcase_class::CheckExprType() {
         }
     }
 
+    // Calculamos el type de case mirando el lub de todos los branch_types
     type = branch_types[0];
     for (int i = 1; i < branch_types.size(); ++i) {
-        type = classtable->FindCommonAncestor(type, branch_types[i]);
+        type = classtable->LUB(type, branch_types[i]);
     }
     return type;
 }
 
 // branch
-// ======
-// Symbol name;
-// Symbol type_decl;
-// Expression expr;
-// 
 Symbol branch_class::CheckBranchType() {
     attribtable.enterscope();
 
@@ -283,6 +281,7 @@ Symbol branch_class::CheckBranchType() {
     return type;
 }
 
+// { [expr;]+ }
 Symbol block_class::CheckExprType() {
     for (int i = body->first(); body->more(i); i = body->next(i)) {
         type = body->nth(i)->CheckExprType();
@@ -291,12 +290,6 @@ Symbol block_class::CheckExprType() {
 }
 
 // let
-// ===
-// Symbol identifier;
-// Symbol type_decl;
-// Expression init;
-// Expression body;
-// 
 Symbol let_class::CheckExprType() {
     if (identifier == self) {
         classtable->semant_error(curr_class) << "Error! self in let binding." << std::endl;

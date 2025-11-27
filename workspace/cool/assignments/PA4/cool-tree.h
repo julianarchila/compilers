@@ -359,6 +359,7 @@ public:
    Expression copy_Expression();
    void dump(ostream& stream, int n);
    Symbol CheckExprType();
+   bool CheckParams(method_class* method);
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
 #endif
