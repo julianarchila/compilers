@@ -10,21 +10,15 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
     
     install_basic_classes();
 
-    // std::map<Symbol, Class_> ClassTable::m_classes
-    // ==============================================
-    // a map from Symbol to Class_
-
-    // Let us build the inheritance graph and check for loops.
-    SEMLOG << "Now building the inheritance graph:" << std::endl;
-
     // añadir las clases al map y verificar redeclaraciones
     for (int i = classes->first(); classes->more(i); i = classes->next(i)) {
 
-        // class name cannot be SELF_TYPE
+        // la clase no se puede llamar SELF_TYPE
         if (classes->nth(i)->GetName() == SELF_TYPE) {
             semant_error(classes->nth(i)) << "Error! SELF_TYPE redeclared!" << std::endl;
         }
 
+        // verificar redeclaraciones
         if (m_classes.find(classes->nth(i)->GetName()) == m_classes.end()) {
             m_classes.insert(std::make_pair(classes->nth(i)->GetName(), classes->nth(i)));
         } else {
@@ -48,8 +42,6 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
 
         curr_class = classes->nth(i);
 
-        SEMLOG << "    " << curr_class->GetName();
-
         Symbol parent_name = curr_class->GetParent();
         while (parent_name != Object && parent_name != classes->nth(i)->GetName()) {
 
@@ -65,22 +57,17 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
                 return;
             }
 
-            SEMLOG << " <- " << parent_name;
             curr_class = m_classes[parent_name];
             parent_name = curr_class->GetParent();
 
         }
 
-        if (parent_name == Object) {
-            SEMLOG << " <- " << parent_name << std::endl;
-        } else {
+        if (parent_name != Object){
             semant_error(curr_class) << "Error! Cycle inheritance!" << std::endl;
             return;
         }
 
     }
-
-    SEMLOG << std::endl;
 
 }
 
@@ -104,9 +91,7 @@ bool ClassTable::CheckInheritance(Symbol a, Symbol b) {
 }
 
 
-// ClassTable::GetInheritancePath
-// ==============================
-// get a path from type to Object, inclusive
+// nos da una lista del camino desde object hasta type
 std::list<Symbol> ClassTable::GetInheritancePath(Symbol type) {
     if (type == SELF_TYPE) {
         type = curr_class->GetName();
@@ -114,7 +99,7 @@ std::list<Symbol> ClassTable::GetInheritancePath(Symbol type) {
 
     std::list<Symbol> path;
 
-    // note that Object's father is No_class
+    // el papa de object es No_class
     for (; type != No_class; type = m_classes[type]->GetParent()) {
         path.push_front(type);  
     }

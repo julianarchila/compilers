@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <list>
-#include <sstream>
 #include <cstring>
 #include "semant.h"
 #include "utilities.h"
@@ -13,8 +12,6 @@
 extern int semant_debug;
 extern char *curr_filename;
 
-// Toggle this to enable/disable semantic debug logging.
-bool kSemantLog = false;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -117,11 +114,9 @@ void program_class::semant() {
         exit(1);
     }
 
-    // Iterar por las clases y guardar los metodos definids en cada clase en el correspondiente methodtable
-    SEMLOG << "Now constructing the methodtables:" << std::endl;
+    // Iterar por las clases y guardar los metodos definidos en cada clase en el correspondiente methodtable
 
     for (std::map<Symbol, Class_>::iterator iter = classtable->m_classes.begin(); iter != classtable->m_classes.end(); ++iter) {
-        SEMLOG << "class " << iter->first << ":" << std::endl;
 
         Symbol class_name = iter->first;
         Class_ current_class = iter->second;
@@ -137,14 +132,11 @@ void program_class::semant() {
     // Mirar si alguna clase redefine un metodo de forma incorrecta:
     // 1. Cambia el tipo de los formals (parametros)
     // 2. Cambia la cantidad de formals (parametros) 
-    SEMLOG << "Now searching for illegal method overriding:" << std::endl;
 
     for (std::map<Symbol, Class_>::iterator iter = classtable->m_classes.begin(); iter != classtable->m_classes.end(); ++iter) {
         
         Symbol class_name = iter->first;
         curr_class = iter->second;;
-
-        SEMLOG << "    Consider class " << class_name << ":" << std::endl;
 
         Features curr_features = classtable->m_classes[class_name]->GetFeatures();
 
@@ -156,8 +148,6 @@ void program_class::semant() {
                 continue;
             }
             
-            SEMLOG << "        method " << curr_method->GetName() << std::endl;
-
             Formals curr_formals = ((method_class*)(curr_method))->GetFormals();
             
             std::list<Symbol> path = classtable->GetInheritancePath(class_name);
@@ -165,42 +155,37 @@ void program_class::semant() {
             for (std::list<Symbol>::reverse_iterator iter = path.rbegin(); iter != path.rend(); ++iter) {
                 
                 Symbol ancestor_name = *iter;
-                SEMLOG << "            ancestor " << ancestor_name << std::endl;
                 method_class* method = methodtables[ancestor_name].lookup(curr_method->GetName());
 
                 if (method== NULL){
                   continue;
                 }
                 
-                // A method is found.
                 Formals formals = method->GetFormals();
 
                 int k1 = formals->first(), k2 = curr_formals->first();
                 for (; formals->more(k1) && curr_formals->more(k2); k1 = formals->next(k1), k2 = formals->next(k2)) {
                     if (formals->nth(k1)->GetType() != curr_formals->nth(k2)->GetType()) {
-                        SEMLOG << "error" << std::endl;
                         classtable->semant_error(classtable->m_classes[class_name]) << "Method override error: formal types dont match." << std::endl;
                     }
                 }
 
                 if (formals->more(k1) || curr_formals->more(k2)) {
-                    SEMLOG << "error" << std::endl;
                     classtable->semant_error(classtable->m_classes[class_name]) << "Method override error: length of formals not match." << std::endl;
                 }
             }
         }
     }
 
-    SEMLOG << std::endl;
     
-    // Let's start checking all the types.
-    SEMLOG << "Now checking all the types:" << std::endl;
+    // Ahora chequeamos los tipos 
 
     for (int i = classes->first(); classes->more(i); i = classes->next(i)) {
+
         curr_class = classes->nth(i);
 
-        SEMLOG << "Checking class " << curr_class->GetName() << ":" << std::endl;
 
+        // Construimos la tabla de atributos para la clase actual:
         // Miramos el camino de herencia de la clase y vamos añadiendo en scopes diferentes los atributos de
         // cada una de las clases en el camino 
         std::list<Symbol> path = classtable->GetInheritancePath(curr_class->GetName());
@@ -217,7 +202,7 @@ void program_class::semant() {
         curr_class = classes->nth(i);
         Features curr_features = curr_class->GetFeatures();
 
-        // Check all features.
+        // Chequeamos los tipos de los features de la clase actual
         for (int j = curr_features->first(); curr_features->more(j); j = curr_features->next(j)) {
             Feature curr_feature = curr_features->nth(j);
             curr_feature->CheckFeatureType();
@@ -228,7 +213,6 @@ void program_class::semant() {
             attribtable.exitscope();
         }
 
-        SEMLOG << std::endl;
     }
 
     if (classtable->errors()) {

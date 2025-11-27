@@ -7,7 +7,6 @@
 ///////////////////////////////////////////////////////////////////
 
 void method_class::AddMethodToTable(Symbol class_name) {
-    SEMLOG << "    Adding method " << name << std::endl;
     methodtables[class_name].addid(name, new method_class(copy_Symbol(name), formals->copy_list(), copy_Symbol(return_type), expr->copy_Expression()));
 }
 
@@ -16,7 +15,6 @@ void method_class::AddAttribToTable(Symbol class_name) { }
 void attr_class::AddMethodToTable(Symbol class_name) { }
 
 void attr_class::AddAttribToTable(Symbol class_name) {
-    SEMLOG << "Adding attrib " << name << std::endl;
 
     if (name == self) {
         classtable->semant_error(curr_class) << "Error! 'self' cannot be the name of an attribute in class " << curr_class->GetName() << std::endl;
@@ -33,7 +31,6 @@ void attr_class::AddAttribToTable(Symbol class_name) {
 // Type checking functions
 ///////////////////////////////////////////////////////////////////
 void method_class::CheckFeatureType() {
-    SEMLOG << "    Checking method \"" << name << "\"" << std::endl;
 
     // miramos que el tipo de retorno exista
     if (classtable->m_classes.find(return_type) == classtable->m_classes.end() && return_type != SELF_TYPE) {
@@ -73,30 +70,28 @@ void method_class::CheckFeatureType() {
 }
 
 void attr_class::CheckFeatureType() {
-    SEMLOG << "    Checking atribute \"" << name << "\"" << std::endl;
-
-    if (init->CheckExprType() == No_type) {
-        SEMLOG << "NO INIT!" << std::endl;
-    }
+    init->CheckExprType();
 }
 
+// ID <- expr
 Symbol assign_class::CheckExprType() {
-    Symbol* lvalue_type = attribtable.lookup(name);
-    Symbol rvalue_type = expr->CheckExprType();
-    if (lvalue_type == NULL) {
-        classtable->semant_error(curr_class) << "Error! Cannot find lvalue " << name << std::endl;
+    Symbol* ID = attribtable.lookup(name);
+    Symbol expr_type = expr->CheckExprType();
+    if (ID == NULL) {
+        classtable->semant_error(curr_class) << "Error! Cannot find ID " << name << std::endl;
         type = Object;
         return type;
     }
-    if (classtable->CheckInheritance(*lvalue_type, rvalue_type) == false) {
-        classtable->semant_error(curr_class) << "Error! lvalue is not an ancestor of rvalue. " << std::endl;
+    if (classtable->CheckInheritance(*ID, expr_type) == false) {
+        classtable->semant_error(curr_class) << "Error! ID is not an ancestor of expr_type. " << std::endl;
         type = Object;
         return type;
     }
-    type = rvalue_type;
+    type = expr_type;
     return type;
 }
 
+// static dispatch: expr[@TYPE].ID( [ expr [[, expr]]*] )
 Symbol static_dispatch_class::CheckExprType() {
     bool error = false;
 
@@ -107,14 +102,11 @@ Symbol static_dispatch_class::CheckExprType() {
         classtable->semant_error(curr_class) << "Error! Static dispatch class is not an ancestor." << std::endl;
     }
 
-    SEMLOG << "Static dispatch: class = " << type_name << std::endl;
-
     // Find the method along the inheritance path.
     // We want the definition in a subclass.
     std::list<Symbol> path = classtable->GetInheritancePath(type_name);
     method_class* method = NULL;
     for (std::list<Symbol>::iterator iter = path.begin(); iter != path.end(); ++iter) {
-        SEMLOG << "Looking for method in class " << *iter << std::endl;
         if ((method = methodtables[*iter].lookup(name)) != NULL) {
             break;
         }
@@ -174,7 +166,6 @@ Symbol dispatch_class::CheckExprType() {
     std::list<Symbol> path = classtable->GetInheritancePath(expr_type);
     method_class* method = NULL;
     for (std::list<Symbol>::iterator iter = path.begin(); iter != path.end(); ++iter) {
-        SEMLOG << "Looking for method in class " << *iter << std::endl;
         if ((method = methodtables[*iter].lookup(name)) != NULL) {
             break;
         }

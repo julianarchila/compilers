@@ -30,11 +30,6 @@ extern ClassTable* classtable;
 extern SymbolTable<Symbol, Symbol> attribtable;
 extern std::map<Symbol, MethodTable> methodtables;
 
-// Simple compile-time / run-time toggled semantic debug logging.
-// Toggle by changing the initializer of kSemantLog in semant.cc.
-extern bool kSemantLog;
-#define SEMLOG if (kSemantLog) std::cout
-
 
 // This is a structure that may be used to contain the semantic
 // information such as the inheritance graph.  You may use it or not as
@@ -55,8 +50,7 @@ public:
 	ostream& semant_error(Class_ c);
 	ostream& semant_error(Symbol filename, tree_node *t);
 
-	// These methods are not in the starting code.
-	bool CheckInheritance(Symbol ancestor, Symbol child);
+	bool CheckInheritance(Symbol a, Symbol b);
 	Symbol LUB(Symbol type1, Symbol type2);
 	std::list<Symbol> GetInheritancePath(Symbol type);
 };
